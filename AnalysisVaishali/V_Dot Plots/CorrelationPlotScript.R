@@ -1,7 +1,4 @@
-
-#  Supplementary Figures: Correlation Plots
-#  Clinical variables (Age, BMI) vs all immune cell populations
-#  as a proportion of CD45+ cells
+# Vaishali Linear Regression Correlation Plots
 
 library(ggplot2)
 library(ggpubr)
@@ -9,18 +6,19 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = T)
+setwd(paste0(repo_root, "/AnalysisVaishali"))
 
-# --- SET SAVE LOCATION ---
-setwd("/Users/ritikajain/Desktop/V_CorrelationPlot")
+# Clear environment variables
+rm(list = ls())
 
-df <- read.csv("/Users/ritikajain/Desktop/Merged_Flow_Data 2.csv", check.names = FALSE)
+# Load flow results (we still need to find out how to reproduce this)
+df <- read.csv("../Merged_Flow_Data 2.csv", check.names = F)
 
-
-# --- STEP 4: Define the CD45+ total column ---
+# Rename columns
 cd45_col <- "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+|count"
 
-
-# --- STEP 5: Define all cell types and their short display names ---
 cell_cols <- c(
   "Pro-B"                    = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pro-B|count",
   "Pre-pro-B"                = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pre-pro-B|count",
@@ -51,13 +49,11 @@ cell_cols <- c(
 )
 
 
-# --- STEP 6: Calculate proportions ---
-# For each cell type, divide its count by the CD45+ total
+
 props <- df %>%
   select(`Record ID`, `Age at enrollment`, BMI, all_of(cd45_col), all_of(unname(cell_cols))) %>%
   filter(!is.na(`Age at enrollment`), !is.na(BMI), !!sym(cd45_col) > 0)
 
-# Add proportion columns
 for (short_name in names(cell_cols)) {
   full_col <- cell_cols[[short_name]]
   new_col  <- paste0("prop_", short_name)
@@ -65,7 +61,6 @@ for (short_name in names(cell_cols)) {
 }
 
 
-# --- STEP 7: Shared plot theme (grey background, clean look) ---
 corr_theme <- theme_bw() +
   theme(
     panel.background   = element_rect(fill = "grey92", colour = NA),
@@ -81,7 +76,6 @@ corr_theme <- theme_bw() +
   )
 
 
-# --- STEP 8: Function to make one scatter plot ---
 make_corr_plot <- function(data, x_var, x_label, cell_name, x_breaks, x_limits) {
   
   prop_col <- paste0("prop_", cell_name)
@@ -91,7 +85,6 @@ make_corr_plot <- function(data, x_var, x_label, cell_name, x_breaks, x_limits) 
     select(x = all_of(x_var), y = all_of(prop_col)) %>%
     filter(!is.na(x), !is.na(y))
   
-  # Calculate R2 and p-value manually
   fit     <- lm(y ~ x, data = plot_data)
   r2      <- round(summary(fit)$r.squared, 3)
   pval    <- summary(fit)$coefficients[2, 4]
@@ -116,24 +109,18 @@ make_corr_plot <- function(data, x_var, x_label, cell_name, x_breaks, x_limits) 
 }
 
 
-# --- STEP 9: Define axis settings ---
 
-# Age: breaks at 40, 60, 80; limits slightly beyond data range
 age_breaks <- c(40, 60, 80)
-age_limits <- c(20, 90)   # adjust if your youngest/oldest patients fall outside this
+age_limits <- c(20, 90)   
 
-# BMI: breaks at category boundaries (18.5, 25, 30) + label positions
-# Tick marks at 18.5, 25, 30 show the category cut-offs on the x-axis
 bmi_breaks <- c(15, 20, 25, 30, 35, 40, 45)
 bmi_limits <- c(13, 47)# adjust to match your data range
 
 
-# --- STEP 10: Generate all plots ---
 
-# Get all cell names from our lookup table
 all_cells <- names(cell_cols)
 
-# ---- AGE PLOTS ----
+
 age_plots <- lapply(all_cells, function(cell) {
   make_corr_plot(
     data     = props,
@@ -146,7 +133,7 @@ age_plots <- lapply(all_cells, function(cell) {
 })
 names(age_plots) <- all_cells
 
-# ---- BMI PLOTS ----
+
 bmi_plots <- lapply(all_cells, function(cell) {
   make_corr_plot(
     data     = props,
@@ -159,29 +146,27 @@ bmi_plots <- lapply(all_cells, function(cell) {
 })
 names(bmi_plots) <- all_cells
 
-# --- Significant cell types ---
+
 age_sig_cells  <- c("ILC", "NKT CD8+", "Naive CD4+ T Cell", "Naive CD8+ T Cell", "Non-Classical Monocyte")
 bmi_sig_cells  <- c("Effector CD4+ T Cell")
 
 age_nonsig_cells <- setdiff(all_cells, age_sig_cells)
 bmi_nonsig_cells <- setdiff(all_cells, bmi_sig_cells)
 
-# --- Split plot lists by significance ---
 age_sig_plots    <- age_plots[age_sig_cells]
 age_nonsig_plots <- age_plots[age_nonsig_cells]
 bmi_sig_plots    <- bmi_plots[bmi_sig_cells]
 bmi_nonsig_plots <- bmi_plots[bmi_nonsig_cells]
 
 
-# --- STEP 11: Export as PDFs ---
-# One PDF per clinical variable, with 3 plots per row
+
 
 n_cells <- length(all_cells)
 plots_per_row <- 3
 n_rows <- ceiling(n_cells / plots_per_row)
-page_height <- n_rows * 3.5 + 0.5   # inches
+page_height <- n_rows * 3.5 + 0.5   
 
-# -- Age PDF --
+
 pdf("Supplementary_Correlations_Age.pdf",
     width = plots_per_row * 3.2,
     height = page_height)
@@ -199,7 +184,7 @@ wrap_plots(age_plots, ncol = plots_per_row) +
 dev.off()
 message("Saved: Supplementary_Correlations_Age.pdf")
 
-# -- BMI PDF --
+
 pdf("Supplementary_Correlations_BMI.pdf",
     width = plots_per_row * 3.2,
     height = page_height)
@@ -219,7 +204,7 @@ message("Saved: Supplementary_Correlations_BMI.pdf")
 
 message("All done! Check your working directory for the two PDF files.")
 
-# --- Save significance-split PDFs ---
+
 
 save_pdf <- function(plot_list, ncols, filename, title_text, subtitle_text) {
   n      <- length(plot_list)
@@ -240,6 +225,7 @@ save_pdf <- function(plot_list, ncols, filename, title_text, subtitle_text) {
   message("Saved: ", filename)
 }
 
+# Next task 2 (from Peter): save on Github instead
 save_pdf(age_sig_plots,    ncols = 2, "Sig_Age_Correlations.pdf",
          "Supplementary Figure: Significant Associations with Age",
          "Cell populations with p < 0.05 | Proportion of total CD45+ cells")

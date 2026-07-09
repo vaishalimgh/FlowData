@@ -157,7 +157,7 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
       }
     }
     
-    # Only label significant points (cleaner look)
+    # Only label significant points/ clean up 
     comparison$label <- ifelse(comparison$color != "Not Significant", comparison$Cell, "")
     
     # Plot
