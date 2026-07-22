@@ -1,5 +1,5 @@
 # Vaishali Kaushal and Peter van Galen, 260709
-# Genreate linear regression correlation plots of cell type proportions. vs continuous variables (age and BMI)
+# Generate correlation plots of cell type proportions. vs continuous variables (age and BMI)
 
 # Setup ------------------------------------------------------------------------
 
