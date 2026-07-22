@@ -8,14 +8,12 @@ library(ggplot2)
 # First, set your working directory to where the regression results are stored and get the filenames
 
 #setwd("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Linear Regression/Regression Results 1_14_2026/regression_results")
-setwd("/Users/ritikajain/Desktop/regression_results")
-
+setwd("/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/AnalysisVaishali/Linear Regression/Regression_Results")
 csv_files <- list.files(".")
 
-# Also read in the merged data
 #merged_data <- read.csv("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Merged_Flow_Data 2.csv")
-merged_data <- read.csv("/Users/ritikajain/Desktop/Merged_Flow_Data 2.csv")
-# 2. FORMAT THE DATA (this is just like the regression script)
+merged_data <- read.csv("/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/Merged_Flow_Data 2.csv")
+
 # Make a new data frame of just the clinical covariates
 clin_df <- merged_data[,1:23]
 
@@ -117,7 +115,10 @@ for(csv in csv_files){
 }
 
 # Set your results directory
-setwd("/Users/ritikajain/Desktop/regression_results_plot")
+plot_dir <- "/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/AnalysisVaishali/Linear Regression/Regression_Plots"
+dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
+setwd(plot_dir)
+
 
 # Quick function for saving PDFs
 save_pdfs <- function(string){

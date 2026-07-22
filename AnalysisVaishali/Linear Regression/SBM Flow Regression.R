@@ -1,5 +1,5 @@
 # Read in the merged CSV file
-df <- read.csv("/Users/ritikajain/Library/Group Containers/UBF8T346G9.Office/Outlook/Outlook 15 Profiles/Main Profile/Files/S0/2/Attachments/0/Merged_Flow_Data[8068].csv")
+df <- read.csv("/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/Merged_Flow_Data 2.csv")
 
 # Make a new data frame of just the clinical covariates
 clin_df <- df[,1:23]
@@ -128,9 +128,12 @@ results_list[[25]] # Change to same number 1:29
 
 View(results_list[[25]]$coefficients)
 
-setwd("/Users/ritikajain/Desktop/regression_results")
+out_dir <- "/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/AnalysisVaishali/Linear Regression/Regression_Results"
+
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 for(n in 1:length(results_list)){
   print(names(results_list[n]))
-  write.csv(file = paste0(names(results_list[n]), ".csv"), results_list[[n]]$coefficients)
+  write.csv(results_list[[n]]$coefficients,
+            file = file.path(out_dir, paste0(names(results_list[n]), ".csv")))
 }
