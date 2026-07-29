@@ -145,12 +145,12 @@ library(ggplot2)
 # First, set your working directory to where the regression results are stored and get the filenames
 
 #setwd("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Linear Regression/Regression Results 1_14_2026/regression_results")
-setwd("/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/AnalysisVaishali/Linear Regression/Regression_Results")
+repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
+setwd(file.path(repo_root, "AnalysisVaishali/03.1_Regression_Results"))
 csv_files <- list.files(".")
 
 #merged_data <- read.csv("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Merged_Flow_Data 2.csv")
-merged_data <- read.csv("/Users/ritikajain/Library/CloudStorage/OneDrive-MassGeneralBrigham/van Galen, Peter's files - Sternum_BM/Sternum_BM_Flow/Sternum_BM_Flow_Github/Merged_Flow_Data 2.csv")
-
+merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data 2.csv"))
 # Make a new data frame of just the clinical covariates
 clin_df <- merged_data[,1:23]
 
@@ -254,7 +254,6 @@ for(csv in csv_files){
 # Save PDFs
 save_pdfs <- function(string){
   plt <- get(string) # Access the plot from the environment
-  ggsave(paste0("03.2_Regression_Plots/",string, ".pdf"), plt, device = "pdf") # Save the plot
-}
+  ggsave(file.path(repo_root, "AnalysisVaishali/03.2_Regression_Plots", paste0(string, ".pdf")), plt, device = "pdf")}
 
 lapply(celltypes, save_pdfs) # Use custom function to save all plots in one line!
