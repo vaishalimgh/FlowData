@@ -1,7 +1,7 @@
 # Vaishali Kaushal and Peter van Galen, 260625
 # Script to make volcano plots comparing cell type proportions across clinical conditions
 
-# Library
+# Load libraries
 library(ggplot2)
 library(ggrepel)
 
@@ -10,7 +10,7 @@ repo_root <- system("git rev-parse --show-toplevel", intern = T)
 setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
-# Load Data
+# Load data.  This file was likely created by merging files within 'Sternum_BM/Sternum_BM_Flow/AnalysisAdrienne/Counts and Fluor Level data/Flow_Cell_Lists' and we will rerun this script using the regenerated Merged_Flow_Data.csv
 data <- read.csv("../Merged_Flow_Data 2.csv")
 colnames(data)[7] <- "Sex"
 
@@ -23,10 +23,13 @@ prop_data <- data
 for(col in cell_cols){
   prop_data[, col] <- as.numeric(data[, col]) / as.numeric(data[, cd45_col])
 }
+# Add age and BMI (make binary using median as threshold)
+prop_data$Age_Group <- ifelse(prop_data$Age >= median(prop_data$Age, na.rm = TRUE), "Yes", "No")
+prop_data$BMI_Group <- ifelse(prop_data$BMI >= median(prop_data$BMI, na.rm = TRUE), "Yes", "No")
 
 # Long column names into short readable labels for the plots
 short_names <- c(
-  "CD34+ Progenitors",
+  "HSPCs",
   "CD4-CD56- Progenitors",
   "CD20-CD123- Progenitors",
   "CD14-CD16- Progenitors",
@@ -87,7 +90,9 @@ conditions <- c(
   "Autoimmune.disease",
   "Peripheral.vascular.disease",
   "History.of.cancer",
-  "Smoking"
+  "Smoking",       
+  "Age_Group",
+  "BMI_Group"
 )
 
 condition_titles <- c(
@@ -100,11 +105,13 @@ condition_titles <- c(
   "Autoimmune Disease",
   "Peripheral Vascular Disease",
   "History of Cancer",
-  "Smoking"
+  "Smoking",       
+  "Age (High vs Low)",
+  "BMI (High vs Low)"
 )
+
 # Volcano plot function 
-volcano_plot <- function(data, cell_list, short_labels, conditions, condition_titles, dir){
-  setwd(dir)
+volcano_plot <- function(data, cell_list, short_labels, conditions, condition_titles){
   
   for(i in 1:length(conditions)){
     condition <- conditions[i]
@@ -133,12 +140,12 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
       comparison[celltype, 3] <- -log10(p.value)
     }
     
-    # Adjusted p-values (BH method)
+    # Adjusted p-values (BH method). We do not actually plot the adjusted value (as of 260819)!
     adj.p    <- p.adjust(p_list, method = "BH")
     adj.logp <- -log10(adj.p)
     comparison$adjusted <- adj.logp
     
-    # Color coding
+    # Color coding (replace `p-value` with adjusted to color by adjusted P-value instead)
     for(i in 1:nrow(comparison)){
       if(!is.na(comparison$`p-value`[i]) & !is.na(comparison$LogFC[i])){
         if(comparison$`p-value`[i] > 1.301 & comparison$LogFC[i] > 0.3){
@@ -153,12 +160,12 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
       }
     }
     
-    # Only label significant points (cleaner look)
+    # Only label significant points
     comparison$label <- ifelse(comparison$color != "Not Significant", comparison$Cell, "")
     
     # Plot
     p <- ggplot(data = comparison,
-                aes(x = LogFC, y = `p-value`, label = label, colour = color)) +
+                aes(x = LogFC, y = `p-value`, label = label, colour = color)) + # Replace `p-value` with adjusted to color by adjusted P-value instead
       geom_point(size = 4, show.legend = TRUE) +
       geom_text_repel(size = 5,
                       max.overlaps = Inf,
@@ -176,7 +183,7 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
       )) +
       guides(colour = guide_legend(override.aes = list(size = 4))) +
       xlab("Log2 Fold Change") +
-      ylab("-log10 p-value") +
+      ylab("-log10 p-value") + # Note: we're plotting raw P-values
       ggtitle(title) +
       geom_hline(yintercept = 1.301, linetype = "dashed", colour = "grey40") +
       geom_vline(xintercept = c(-0.3, 0.3), linetype = "dashed", colour = "grey40") +
@@ -191,17 +198,17 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
         legend.title      = element_blank()
       )
     
-    ggsave(paste0(title, "_volcano_v0.pdf"), p, device = "pdf", width = 12, height = 10)
+    ggsave(paste0("V_VolcanoPlots/", title, "_volcano.pdf"), p, device = "pdf", width = 12, height = 10)
     message("Saved: ", title, "_volcano_v0.pdf")
   }
 }
 
-# UPDATE THIS PATH to your VolcanoPlots folder
+# Save volcano plots
 volcano_plot(
   data            = prop_data,
   cell_list       = cell_cols,
   short_labels    = short_names,
   conditions      = conditions,
-  condition_titles = condition_titles,
-  dir             = "V_VolcanoPlots"
+  condition_titles = condition_titles
 )
+

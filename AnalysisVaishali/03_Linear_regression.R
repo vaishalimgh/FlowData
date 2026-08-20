@@ -92,7 +92,7 @@ prop_data <- data.frame(
   "CM_CD4" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD4..CD197..Central.Memory.CD4..T.Cell.count,
   "Effector_CD4" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD4..CD197..Effector.CD4..T.Cell.count,
   "CD4_TPex" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD279..CD4..T.Cell.CD4..TPex.count,
-  "CD8_Tcell" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.count,
+  "CD8_T" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.count,
   "CD8_TPex" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD279..CD8..T.Cell.CD8..TPex.count,
   "CM_CD8" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD197..CD8..T.Cell.Central.Memory.CD8..T.Cell.count,
   "Naive_CD8" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD197..CD8..T.Cell.Naive.CD8..T.Cell.count,
