@@ -50,7 +50,7 @@ merged_data <- left_join(clinical_data, counts_data)
 # MODIFY COLUMN NAMES ----------------------------------------------------------
 
 # fmt: skip
-renaming_table <- tribble(~New, ~Old, ~Include,
+renaming_table <- tribble(~New, ~Old,
   "CD45","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+|count",
   "HSCs","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38-|count", # V included
   "Progenitors","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+|count", # V included
@@ -78,13 +78,13 @@ renaming_table <- tribble(~New, ~Old, ~Include,
   "CM_CD4","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD4+/CD197+/Central Memory CD4+ T Cell|count", # V included
   "Effector_CD4","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD4+/CD197-/Effector CD4+ T Cell|count",
   "PD1_CD4","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD279+/CD4+ T Cell|count", # V included
-  "CD4_TPex","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD279+/CD4+ T Cell/CD4+ TPex|count",
+  #"CD4_TPex","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD279+/CD4+ T Cell/CD4+ TPex|count",
   "CD8_T","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell|count",
   "Naive_CD8","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197+/CD8+ T Cell/Naive CD8+ T Cell|count",
   "CM_CD8","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197+/CD8+ T Cell/Central Memory CD8+ T Cell|count",
   "Effector_CD8","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197-/CD8+ T Cell/Effector CD8+ T Cell|count",
   "PD1_CD8","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD279+/CD8+ T Cell|count", # V included
-  "CD8_TPex","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD279+/CD8+ T Cell/CD8+ TPex|count",
+  #"CD8_TPex","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD279+/CD8+ T Cell/CD8+ TPex|count",
   "gd_T","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/gd T cell|count",
 )
 
