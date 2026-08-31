@@ -14,7 +14,7 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Load flow data
-df <- read.csv("../Merged_Flow_Data 2.csv")
+df <- read.csv("../Merged_Flow_Data.csv") 
 
 # -- Continuous variables ------------------------------------------------------
 
