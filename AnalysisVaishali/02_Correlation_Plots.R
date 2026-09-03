@@ -16,40 +16,41 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Load flow results (we still need to find out how to reproduce this)
-df <- read.csv("../Merged_Flow_Data 2.csv", check.names = F)
+df <- read.csv("../Merged_Flow_Data.csv", check.names = F)
 
 # Define column names ----------------------------------------------------------
 
-cd45_col <- "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+|count"
+all_cells <- c( "CD45",
+                "HSPCs",
+                "Pro_B",
+                "Pre_Pro_B",
+                "B.cells", 
+                "Early.NK",
+                "Mature.NK",
+                "Non_classical.monocyte",
+                "Classical.monocyte",
+                "MDSC_like",
+                "pDCs",
+                "cDCs",
+                "ILC",
+                "CD8neg_NKT",
+                "CD8pos_NKT",
+                "CD4_T",
+                "Naive_CD4",
+                "CM_CD4",
+                "Effector_CD4",
+                "PD1_CD4",
+                "CD4_TPex",
+                "Tregs",
+                "CD8_T",
+                "Naive_CD8",
+                "CM_CD8",
+                "Effector_CD8",
+                "PD1_CD8",
+                "CD8_TPex",
+                "gd_T")
 
-cell_cols <- c(
-  "Pro-B" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pro-B|count",
-  "Pre-pro-B" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pre-pro-B|count",
-  "B Cells" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/B Cells|count",
-  "Early NK" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Early NK|count",
-  "Mature NK" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Mature NK|count",
-  "Non-Classical Monocyte" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Non-Classical Monocyte|count",
-  "Classical Monocyte" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Classical Monocyte|count",
-  "MDSC-like" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/CD14+/HLA-DR-/MDSC-like|count",
-  "Dendritic Cells" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells|count",
-  "pDC" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells/pDC|count",
-  "cDC" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells/cDC|count",
-  "CD16+ cDC" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells/cDC/CD16+ cDC|count",
-  "CD16- cDC" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells/cDC/CD16- cDC|count",
-  "ILC" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/CD14-/HLA-DR-/ILC|count",
-  "NKT CD8-" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/NKT CD8-|count",
-  "NKT CD8+" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/NKT CD8+|count",
-  "Tregs" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/Tregs|count",
-  "Naive CD4+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD4+/CD197+/Naive CD4+ T Cell|count",
-  "Central Memory CD4+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD4+/CD197+/Central Memory CD4+ T Cell|count",
-  "Effector CD4+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD4+/CD197-/Effector CD4+ T Cell|count",
-  "CD4+ TPex" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD4+ T cell/CD279+/CD4+ T Cell/CD4+ TPex|count",
-  "CD8+ TPex" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD279+/CD8+ T Cell/CD8+ TPex|count",
-  "Central Memory CD8+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197+/CD8+ T Cell/Central Memory CD8+ T Cell|count",
-  "Naive CD8+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197+/CD8+ T Cell/Naive CD8+ T Cell|count",
-  "Effector CD8+ T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197-/CD8+ T Cell/Effector CD8+ T Cell|count",
-  "gd T Cell" = "FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3+/CD34-/TCRab+/T Cell/CD8+ T Cell/CD197-/CD8+ T Cell/Effector CD8+ T Cell|count"
-)
+
 
 # Compute cell type proportions -----------------------------------------------
 
@@ -59,20 +60,17 @@ props <- df %>%
     `Record ID`,
     `Age at enrollment`,
     BMI,
-    all_of(cd45_col),
-    all_of(unname(cell_cols))
+    all_of(all_cells)
   )
 
 # Add cell proportions (of CD45+ cell count)
-for (short_name in names(cell_cols)) {
-  full_col <- cell_cols[[short_name]]
-  new_col <- paste0("prop_", short_name)
-  props[[new_col]] <- props[[full_col]] / props[[cd45_col]]
+for (cell in all_cells) {
+  new_col <- paste0("prop_", cell)
+  props[[new_col]] <- props[[cell]] / props[["CD45"]]
 }
 
 
 # Plot theme -------------------------------------------------------------------
-
 corr_theme <- theme_bw() +
   theme(
     axis.text = element_text(color = "black"),
@@ -142,7 +140,7 @@ make_corr_plot <- function(
 # Generate correlation plots ---------------------------------------------------
 
 # Generate vector with cell type names to plot each one
-all_celltypes <- names(cell_cols)
+all_celltypes <- setdiff(all_cells, "CD45")
 
 age_plots <- lapply(all_celltypes, function(cell) {
   make_corr_plot(
@@ -167,12 +165,12 @@ names(bmi_plots) <- all_celltypes
 
 age_sig_celltypes <- c(
   "ILC",
-  "NKT CD8+",
-  "Naive CD4+ T Cell",
-  "Naive CD8+ T Cell",
-  "Non-Classical Monocyte"
+  "CD8pos_NKT",
+  "Naive_CD4",
+  "Naive_CD8",
+  "Non_classical.monocyte"
 )
-bmi_sig_celltypes <- c("Effector CD4+ T Cell")
+bmi_sig_celltypes <- c("Effector_CD4")
 
 age_nonsig_celltypes <- setdiff(all_celltypes, age_sig_celltypes)
 bmi_nonsig_celltypes <- setdiff(all_celltypes, bmi_sig_celltypes)
