@@ -11,7 +11,7 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Load data.  This file was likely created by merging files within 'Sternum_BM/Sternum_BM_Flow/AnalysisAdrienne/Counts and Fluor Level data/Flow_Cell_Lists' and we will rerun this script using the regenerated Merged_Flow_Data.csv
-data <- read.csv("../Merged_Flow_Data 2.csv")
+data <- read.csv("../Merged_Flow_Data.csv")
 colnames(data)[7] <- "Sex"
 
 # Define columns
@@ -198,8 +198,8 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
         legend.title      = element_blank()
       )
     
-    ggsave(paste0("V_VolcanoPlots/", title, "_volcano.pdf"), p, device = "pdf", width = 12, height = 10)
-    message("Saved: ", title, "_volcano_v0.pdf")
+    ggsave(paste0("03_Volcano_Plots/", title, "_volcano.pdf"), p, device = "pdf", width = 12, height = 10)
+    message("Saved: ", title, "_volcano.pdf")
   }
 }
 
