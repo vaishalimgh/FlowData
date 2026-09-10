@@ -14,9 +14,41 @@ rm(list = ls())
 data <- read.csv("../Merged_Flow_Data.csv")
 colnames(data)[7] <- "Sex"
 
+# Long column names into short readable labels for the plots
+all_cells <- c( "CD45",
+                "HSPCs",
+                "Pro_B",
+                "Pre_Pro_B",
+                "B.cells", 
+                "Early.NK",
+                "Mature.NK",
+                "Non_classical.monocyte",
+                "Classical.monocyte",
+                "MDSC_like",
+                "pDCs",
+                "cDCs",
+                "ILC",
+                "CD8neg_NKT",
+                "CD8pos_NKT",
+                "CD4_T",
+                "Naive_CD4",
+                "CM_CD4",
+                "Effector_CD4",
+                "PD1_CD4",
+                "CD4_TPex",
+                "Tregs",
+                "CD8_T",
+                "Naive_CD8",
+                "CM_CD8",
+                "Effector_CD8",
+                "PD1_CD8",
+                "CD8_TPex",
+                "gd_T")
+
+
 # Define columns
-cd45_col <- colnames(data)[28]   # CD45+ total count column
-cell_cols <- colnames(data)[29:ncol(data)]  # All immune cell columns
+cd45_col  <- "CD45"
+cell_cols <- setdiff(all_cells, "CD45")
 
 # Calculate proportions
 prop_data <- data
@@ -27,57 +59,6 @@ for(col in cell_cols){
 prop_data$Age_Group <- ifelse(prop_data$Age >= median(prop_data$Age, na.rm = TRUE), "Yes", "No")
 prop_data$BMI_Group <- ifelse(prop_data$BMI >= median(prop_data$BMI, na.rm = TRUE), "Yes", "No")
 
-# Long column names into short readable labels for the plots
-short_names <- c(
-  "HSPCs",
-  "CD4-CD56- Progenitors",
-  "CD20-CD123- Progenitors",
-  "CD14-CD16- Progenitors",
-  "CD11b-CD11c- Progenitors",
-  "MLP",
-  "MPP",
-  "Pro-B",
-  "Pre-pro-B",
-  "CD3- CD34- Cells",
-  "B Cells",
-  "CD19-CD20- Cells",
-  "Early NK",
-  "Mature NK",
-  "Non-Classical Monocyte",
-  "Classical Monocyte",
-  "CD14+ HLA-DR- Cells",
-  "MDSC-like",
-  "Dendritic Cells",
-  "pDC",
-  "cDC",
-  "CD16+ cDC",
-  "CD16- cDC",
-  "CD14- HLA-DR- Cells",
-  "ILC",
-  "CD3+ T Cells",
-  "TCRab+ T Cells",
-  "NKT CD8-",
-  "NKT CD8+",
-  "T Cells",
-  "CD4+ T Cell",
-  "Tregs",
-  "CD4+ CD197+",
-  "Naive CD4+ T Cell",
-  "Central Memory CD4+ T Cell",
-  "CD4+ CD197-",
-  "Effector CD4+ T Cell",
-  "CD279+ CD4+ T Cell",
-  "CD4+ TPex",
-  "CD8+ T Cell",
-  "CD279+ CD8+ T Cell",
-  "CD8+ TPex",
-  "CD197+ CD8+ T Cell",
-  "Central Memory CD8+ T Cell",
-  "Naive CD8+ T Cell",
-  "CD197- CD8+ T Cell",
-  "Effector CD8+ T Cell",
-  "gd T Cell"
-)
 
 # Define conditions and their clean titles
 conditions <- c(
@@ -111,7 +92,7 @@ condition_titles <- c(
 )
 
 # Volcano plot function 
-volcano_plot <- function(data, cell_list, short_labels, conditions, condition_titles){
+volcano_plot <- function(data, cell_list, conditions, condition_titles){
   
   for(i in 1:length(conditions)){
     condition <- conditions[i]
@@ -125,17 +106,23 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
       comparison1 <- subset(data, data[,condition] == "Yes" | data[,condition] == "Female" | data[,condition] == "Checked")
       comparison2 <- subset(data, data[,condition] == "No"  | data[,condition] == "Male"   | data[,condition] == "Unchecked")
       
+      x <- as.numeric(comparison1[, cell_list[celltype]])
+      y <- as.numeric(comparison2[, cell_list[celltype]])
+      
       mean1 <- mean(as.numeric(comparison1[, cell_list[celltype]]), na.rm = TRUE)
       mean2 <- mean(as.numeric(comparison2[, cell_list[celltype]]), na.rm = TRUE)
       logFC <- log2(mean1 / mean2)
       
-      ttest   <- t.test(as.numeric(comparison1[, cell_list[celltype]]),
-                        as.numeric(comparison2[, cell_list[celltype]]))
-      p.value <- ttest$p.value
+      ttest <- tryCatch(
+        t.test(x, y),
+        error = function(e) NULL
+      )
+      p.value <- if(!is.null(ttest)) ttest$p.value else NA
       p_list  <- append(p_list, p.value)
       
+      
       # Use short label instead of full column name
-      comparison[celltype, 1] <- short_labels[celltype]
+      comparison[celltype, 1] <- cell_list[celltype]
       comparison[celltype, 2] <- logFC
       comparison[celltype, 3] <- -log10(p.value)
     }
@@ -205,10 +192,9 @@ volcano_plot <- function(data, cell_list, short_labels, conditions, condition_ti
 
 # Save volcano plots
 volcano_plot(
-  data            = prop_data,
-  cell_list       = cell_cols,
-  short_labels    = short_names,
-  conditions      = conditions,
+  data             = prop_data,
+  cell_list        = cell_cols,
+  conditions       = conditions,
   condition_titles = condition_titles
 )
 

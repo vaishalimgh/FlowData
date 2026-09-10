@@ -1,4 +1,4 @@
-# Vaishali Kaushal and Peter van Galen, 260722
+ # Vaishali Kaushal and Peter van Galen, 260722
 # Run linear regression to determine effect size
 
 # Setup ------------------------------------------------------------------------
@@ -11,7 +11,7 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Read in the merged CSV file
-df <- read.csv("../Merged_Flow_Data 2.csv")
+df <- read.csv("../Merged_Flow_Data.csv")
 
 
 # Linear regression ------------------------------------------------------------
@@ -68,38 +68,21 @@ lapply(clin_df, class)
 clin_df <- as.data.frame(sapply(clin_df, as.numeric))
 
 # Make a new data frame of the cell types we want
-prop_data <- data.frame(
-  "Pro_B" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD4.CD56..CD20.CD123..CD14.CD16..CD11b.CD11c..CD34.CD38..Pro.B.count,
-  "Pre_Pro_B" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD4.CD56..CD20.CD123..CD14.CD16..CD11b.CD11c..CD34.CD38..Pre.pro.B.count,
-  "B.cells" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..B.Cells.count,
-  "Eary.NK" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Early.NK.count,
-  "Mature.NK" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Mature.NK.count,
-  "Non_classical.monocyte" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Non.Classical.Monocyte.count,
-  "Classical.monocyte" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Classical.Monocyte.count,
-  "MDSC_like" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..CD14..HLA.DR..MDSC.like.count,
-  "DCs" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Dendritic.Cells.count,
-  "pDCs" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Dendritic.Cells.pDC.count,
-  "cDCs" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Dendritic.Cells.cDC.count,
-  "CD16pos_cDC" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Dendritic.Cells.cDC.CD16..cDC.count,
-  "CD16neg_cDC" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..Dendritic.Cells.cDC.CD16..cDC.count.1,
-  "ILC" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..CD19..CD20..CD14..HLA.DR..ILC.count,
-  "CD8neg_NKT" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..NKT.CD8..count,
-  "CD8pos_NKT" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..NKT.CD8..count.1,
-  "T_cell" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.count,
-  "CD4_T" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.count,
-  "Tregs" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.Tregs.count,
-  "Naive_CD4" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD4..CD197..Naive.CD4..T.Cell.count,
-  "CM_CD4" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD4..CD197..Central.Memory.CD4..T.Cell.count,
-  "Effector_CD4" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD4..CD197..Effector.CD4..T.Cell.count,
-  "CD4_TPex" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD4..T.cell.CD279..CD4..T.Cell.CD4..TPex.count,
-  "CD8_T" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.count,
-  "CD8_TPex" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD279..CD8..T.Cell.CD8..TPex.count,
-  "CM_CD8" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD197..CD8..T.Cell.Central.Memory.CD8..T.Cell.count,
-  "Naive_CD8" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD197..CD8..T.Cell.Naive.CD8..T.Cell.count,
-  "Effector_CD8" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..TCRab..T.Cell.CD8..T.Cell.CD197..CD8..T.Cell.Effector.CD8..T.Cell.count,
-  "gd_T" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..gd.T.cell.count,
-  "progenitors" = df$FlowCut.passed.Cells.Single.Cells.Live.Cells.CD45..CD3..CD34..count
-)
+# Define the cell type columns to model (same panel as the volcano plot script)
+all_cells <- c("CD45",
+               "HSPCs", "Pro_B", "Pre_Pro_B", "B.cells", "Early.NK", "Mature.NK",
+               "Non_classical.monocyte", "Classical.monocyte", "MDSC_like", "pDCs", "cDCs",
+               "ILC", "CD8neg_NKT", "CD8pos_NKT", "CD4_T", "Naive_CD4", "CM_CD4",
+               "Effector_CD4", "PD1_CD4", "CD4_TPex", "Tregs", "CD8_T", "Naive_CD8",
+               "CM_CD8", "Effector_CD8", "PD1_CD8", "CD8_TPex", "gd_T")
+
+missing_cols <- setdiff(all_cells, colnames(df))
+if(length(missing_cols) > 0){
+  stop("These expected columns are missing from the CSV: ", paste(missing_cols, collapse = ", "))
+}
+
+cell_cols <- setdiff(all_cells, "CD45")
+prop_data <- df[, cell_cols]
 
 # Initial check of cell type effects in multiple regression
 
@@ -128,7 +111,7 @@ View(results_list[[25]]$coefficients)
 for(n in 1:length(results_list)){
   print(names(results_list[n]))
   write.csv(results_list[[n]]$coefficients,
-            file = file.path("03.1_Regression_Results", paste0(names(results_list[n]), ".csv")))
+            file = file.path("04.1_Regression_Results", paste0(names(results_list[n]), ".csv")))
 }
 
 
@@ -146,11 +129,12 @@ library(ggplot2)
 
 #setwd("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Linear Regression/Regression Results 1_14_2026/regression_results")
 repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
-setwd(file.path(repo_root, "AnalysisVaishali/03.1_Regression_Results"))
+dir.create(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"), showWarnings = FALSE, recursive = TRUE)
+setwd(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"))
 csv_files <- list.files(".")
 
 #merged_data <- read.csv("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Merged_Flow_Data 2.csv")
-merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data 2.csv"))
+merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data.csv"))
 # Make a new data frame of just the clinical covariates
 clin_df <- merged_data[,1:23]
 
@@ -204,6 +188,7 @@ clin_df$Race <- NULL
 
 
 # Check numerics are actually numeric
+dir.create("04.1_Regression_Results", showWarnings = FALSE)
 for(i in 1:ncol(clin_df)){ # For each column
   print(colnames(clin_df)[i]) # Print the column name
   print(class(clin_df[,i])) # Print the data class of the values in that column
@@ -252,8 +237,9 @@ for(csv in csv_files){
 }
 
 # Save PDFs
+dir.create(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots"), showWarnings = FALSE, recursive = TRUE)
 save_pdfs <- function(string){
   plt <- get(string) # Access the plot from the environment
-  ggsave(file.path(repo_root, "AnalysisVaishali/03.2_Regression_Plots", paste0(string, ".pdf")), plt, device = "pdf")}
+  ggsave(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots", paste0(string, ".pdf")), plt, device = "pdf")}
 
 lapply(celltypes, save_pdfs) # Use custom function to save all plots in one line!
