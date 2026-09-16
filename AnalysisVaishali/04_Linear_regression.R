@@ -24,11 +24,12 @@ colnames(clin_df) <- gsub("Primary.pre.operative.diagnosis...checkboxes..choice.
 
 # Remove columns that will not be used in the regression
 clin_df$Record.ID <- NULL # Okay to do because the flow data is in the same order as the clinical data in merged df
-clin_df$Procedure.s....notes <- NULL
-clin_df$Cancer.type..years.since.treatment..other <- NULL
+clin_df$Procedure.notes <- NULL
+clin_df$Cancer.type <- NULL
 clin_df$Ethnicity <- NULL
 clin_df$Current.smoker <- NULL
-clin_df$Endocarditis. <- NULL # All are "unchecked," nothing to model
+clin_df$Endocarditis <- NULL # All are "unchecked," nothing to model
+clin_df$Atherosclerosis <- df$Atherosclerosis
 
 # Identify the columns that need to be binarized to 1's and 0's
 lapply(clin_df, unique)
@@ -70,8 +71,8 @@ clin_df <- as.data.frame(sapply(clin_df, as.numeric))
 # Make a new data frame of the cell types we want
 # Define the cell type columns to model (same panel as the volcano plot script)
 all_cells <- c("CD45",
-               "HSPCs", "Pro_B", "Pre_Pro_B", "B.cells", "Early.NK", "Mature.NK",
-               "Non_classical.monocyte", "Classical.monocyte", "MDSC_like", "pDCs", "cDCs",
+               "HSPCs", "Pro_B", "Pre_Pro_B", "B_cells", "Early_NK", "Mature_NK",
+               "Non_classical_monocyte", "Classical_monocyte", "MDSC_like", "pDCs", "cDCs",
                "ILC", "CD8neg_NKT", "CD8pos_NKT", "CD4_T", "Naive_CD4", "CM_CD4",
                "Effector_CD4", "PD1_CD4", "CD4_TPex", "Tregs", "CD8_T", "Naive_CD8",
                "CM_CD8", "Effector_CD8", "PD1_CD8", "CD8_TPex", "gd_T")
@@ -140,10 +141,11 @@ clin_df <- merged_data[,1:23]
 
 # Remove columns that will not be used in the regression
 clin_df$Record.ID <- NULL # Okay to do because the flow data is in the same order as the clinical data in merged df
-clin_df$Procedure.s....notes <- NULL
-clin_df$Cancer.type..years.since.treatment..other <- NULL
+clin_df$Procedure.notes <- NULL
+clin_df$Cancer.type <- NULL
 clin_df$Ethnicity <- NULL
 clin_df$Current.smoker <- NULL
+clin_df$Atherosclerosis <- merged_data$Atherosclerosis
 
 
 # Change the column names by getting rid of extraneous text
@@ -198,7 +200,7 @@ for(i in 1:ncol(clin_df)){ # For each column
 clin_df <- as.data.frame(sapply(clin_df, as.numeric))
 
 # Remove the endocarditis column NOTE: FOR SOME REASON THIS WASN'T WORKING UNLESS I MOVED IT HERE
-clin_df$Endocarditis. <- NULL
+clin_df$Endocarditis <- NULL
 
 # -----------------------------------------------------------------------------------------
 # 3. PLOTIING AND SAVING

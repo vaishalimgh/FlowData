@@ -57,11 +57,11 @@ renaming_table <- tribble(~New, ~Old,
   "HSPCs","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+|count",
   "Pro_B","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pro-B|count",
   "Pre_Pro_B","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34+/CD4-CD56-/CD20-CD123-/CD14-CD16-/CD11b-CD11c-/CD34+CD38+/Pre-pro-B|count",
-  "B.cells","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/B Cells|count",
-  "Early.NK","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Early NK|count",
-  "Mature.NK","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Mature NK|count",
-  "Non_classical.monocyte","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Non-Classical Monocyte|count",
-  "Classical.monocyte","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Classical Monocyte|count",
+  "B_cells","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/B Cells|count",
+  "Early_NK","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Early NK|count",
+  "Mature_NK","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Mature NK|count",
+  "Non_classical_monocyte","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Non-Classical Monocyte|count",
+  "Classical_monocyte","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Classical Monocyte|count",
   "MDSC_like","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/CD14+/HLA-DR-/MDSC-like|count",
   "DCs","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells|count",
   "pDCs","FlowCut-passed/Cells/Single Cells/Live Cells/CD45+/CD3-/CD34-/CD19-/CD20-/Dendritic Cells/pDC|count",
@@ -99,6 +99,19 @@ merged_data_rename <- merged_data |> rename(all_of(renaming_vector))
 merged_data_subset <- merged_data_rename |>
   select(1:23, all_of(renaming_table$New))
 
+# Rename some more columns
+merged_data_subset <- merged_data_subset |> rename(`Procedure notes` = `Procedure(s) - notes`)
+merged_data_subset <- merged_data_subset |> rename(`Coronary artery disease` = `Primary pre-operative diagnosis - checkboxes (choice=Coronary artery disease)`)
+merged_data_subset <- merged_data_subset |> rename(`Valve disease` = `Primary pre-operative diagnosis - checkboxes (choice=Valve disease)`)
+merged_data_subset <- merged_data_subset |> rename(`Endocarditis` = `Primary pre-operative diagnosis - checkboxes (choice=Endocarditis)`)
+merged_data_subset <- merged_data_subset |> rename(`Heart failure` = `Primary pre-operative diagnosis - checkboxes (choice=Heart failure)`)
+merged_data_subset <- merged_data_subset |> rename(`Cancer type` = `Cancer type, years since treatment, other`)
+merged_data_subset <- merged_data_subset |> rename(`History of thrombosis or pulmonary embolism` = `History of thrombosis/pulmonary embolism`)
+
+# Add atherosclerosis column
+merged_data_subset$Atherosclerosis <- ifelse(merged_data_subset$`Coronary artery disease` == "Checked" | merged_data_subset$`Peripheral vascular disease` == "Yes", yes = "Yes", no = "No")
+merged_data_subset <- merged_data_subset |>
+  relocate(Atherosclerosis, .before = `CD45`)
+
 # Save
 write_csv(merged_data_subset, file = "../Merged_Flow_Data.csv")
-

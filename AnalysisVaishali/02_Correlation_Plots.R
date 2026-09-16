@@ -24,11 +24,11 @@ all_cells <- c( "CD45",
                 "HSPCs",
                 "Pro_B",
                 "Pre_Pro_B",
-                "B.cells", 
-                "Early.NK",
-                "Mature.NK",
-                "Non_classical.monocyte",
-                "Classical.monocyte",
+                "B_cells", 
+                "Early_NK",
+                "Mature_NK",
+                "Non_classical_monocyte",
+                "Classical_monocyte",
                 "MDSC_like",
                 "pDCs",
                 "cDCs",
@@ -168,7 +168,7 @@ age_sig_celltypes <- c(
   "CD8pos_NKT",
   "Naive_CD4",
   "Naive_CD8",
-  "Non_classical.monocyte"
+  "Non_classical_monocyte"
 )
 bmi_sig_celltypes <- c("Effector_CD4")
 
