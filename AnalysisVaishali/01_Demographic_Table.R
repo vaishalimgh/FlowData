@@ -55,12 +55,14 @@ hf_yes     <- sum(merged_data$Primary.pre.operative.diagnosis...checkboxes..choi
 hf_no      <- sum(merged_data$Primary.pre.operative.diagnosis...checkboxes..choice.Heart.failure. == "Unchecked")
 endo_yes   <- sum(merged_data$Primary.pre.operative.diagnosis...checkboxes..choice.Endocarditis. == "Checked")
 endo_no    <- sum(merged_data$Primary.pre.operative.diagnosis...checkboxes..choice.Endocarditis. == "Unchecked")
+athero_yes <- sum(merged_data$Atherosclerosis == "Yes")
+athero_no  <- sum(merged_data$Atherosclerosis == "No")
 
 
 # -- Build data frame ----------------------------------------------------------
 
 table1 <- data.frame(
-  num = as.character(c(1:17)),
+  num = as.character(c(1:18)),
   variable = c(
     "Sex Assigned at Birth",
     "Age at Enrollment",
@@ -78,7 +80,8 @@ table1 <- data.frame(
     "Coronary Artery Disease",
     "Valve Disease",
     "Heart Failure",
-    "Endocarditis"
+    "Endocarditis", 
+    "Atherosclerosis"
   ),
   yes = c(
     paste0(sex_female, " (Female)"),
@@ -86,7 +89,7 @@ table1 <- data.frame(
     paste0(bmi_mean, " \u00b1 ", bmi_sd),
     smoker_yes, diabetes_yes, hypertension_yes, hyperlipidemia_yes,
     hypo_yes, pvd_yes, stroke_yes, cancer_yes, autoimmune_yes,
-    thrombosis_yes, cad_yes, valve_yes, hf_yes, endo_yes
+    thrombosis_yes, cad_yes, valve_yes, hf_yes, endo_yes, athero_yes
   ),
   no = c(
     paste0(sex_male, " (Male)"),
@@ -94,7 +97,7 @@ table1 <- data.frame(
     "",   # will be merged
     smoker_no, diabetes_no, hypertension_no, hyperlipidemia_no,
     hypo_no, pvd_no, stroke_no, cancer_no, autoimmune_no,
-    thrombosis_no, cad_no, valve_no, hf_no, endo_no
+    thrombosis_no, cad_no, valve_no, hf_no, endo_no, athero_no
   )
 )
 
@@ -124,8 +127,8 @@ ft <- flextable(table1) %>%
   bold(part = "header") %>%
   
   # Alternating row shading
-  bg(i = seq(1, 17, 2), bg = "#EAF2F8", part = "body") %>%
-  bg(i = seq(2, 17, 2), bg = "#D6E4F0", part = "body") %>%
+  bg(i = seq(1, 18, 2), bg = "#EAF2F8", part = "body") %>%
+  bg(i = seq(2, 18, 2), bg = "#D6E4F0", part = "body") %>%
   
   # Center-align merged Age/BMI cells
   align(i = 2:3, j = 3, align = "center", part = "body") %>%
