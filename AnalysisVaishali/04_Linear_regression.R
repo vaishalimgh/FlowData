@@ -109,6 +109,9 @@ results_list[[25]] # Change to same number 1:29
 
 View(results_list[[25]]$coefficients)
 
+dir.create("04.1_Regression_Results", showWarnings = FALSE)
+unlink(list.files("04.1_Regression_Results", full.names = TRUE))
+
 for(n in 1:length(results_list)){
   print(names(results_list[n]))
   write.csv(results_list[[n]]$coefficients,
@@ -132,7 +135,7 @@ library(ggplot2)
 repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
 dir.create(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"), showWarnings = FALSE, recursive = TRUE)
 setwd(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"))
-csv_files <- list.files(".")
+csv_files <- list.files(".", pattern = "\\.csv$")
 
 #merged_data <- read.csv("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Merged_Flow_Data 2.csv")
 merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data.csv"))
@@ -190,7 +193,6 @@ clin_df$Race <- NULL
 
 
 # Check numerics are actually numeric
-dir.create("04.1_Regression_Results", showWarnings = FALSE)
 for(i in 1:ncol(clin_df)){ # For each column
   print(colnames(clin_df)[i]) # Print the column name
   print(class(clin_df[,i])) # Print the data class of the values in that column
@@ -239,7 +241,12 @@ for(csv in csv_files){
 }
 
 # Save PDFs
+print(paste("Number of cell types processed:", length(celltypes)))
+print("About to clear and rewrite plots folder")
+
+
 dir.create(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots"), showWarnings = FALSE, recursive = TRUE)
+unlink(list.files(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots"), full.names = TRUE))
 save_pdfs <- function(string){
   plt <- get(string) # Access the plot from the environment
   ggsave(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots", paste0(string, ".pdf")), plt, device = "pdf")}
