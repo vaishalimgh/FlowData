@@ -1,4 +1,4 @@
- # Vaishali Kaushal and Peter van Galen, 260722
+# Vaishali Kaushal and Peter van Galen, 260722
 # Run linear regression to determine effect size
 
 # Setup ------------------------------------------------------------------------
@@ -23,12 +23,12 @@ clin_df <- df[,1:23]
 colnames(clin_df) <- gsub("Primary.pre.operative.diagnosis...checkboxes..choice.", "", colnames(clin_df))
 
 # Remove columns that will not be used in the regression
-clin_df$Record.ID <- NULL # Okay to do because the flow data is in the same order as the clinical data in merged df
+clin_df$Record.ID <- NULL 
 clin_df$Procedure.notes <- NULL
 clin_df$Cancer.type <- NULL
 clin_df$Ethnicity <- NULL
 clin_df$Current.smoker <- NULL
-clin_df$Endocarditis <- NULL # All are "unchecked," nothing to model
+clin_df$Endocarditis <- NULL 
 clin_df$Atherosclerosis <- df$Atherosclerosis
 
 # Identify the columns that need to be binarized to 1's and 0's
@@ -82,7 +82,7 @@ if(length(missing_cols) > 0){
   stop("These expected columns are missing from the CSV: ", paste(missing_cols, collapse = ", "))
 }
 
-cell_cols <- setdiff(all_cells, "CD45")
+cell_cols <- setdiff(all_cells, "CD45") #Excluded CD45  
 prop_data <- df[, cell_cols]
 
 # Initial check of cell type effects in multiple regression
@@ -124,20 +124,14 @@ for(n in 1:length(results_list)){
 
 # Make Effect size box plots from regression results
 
-# Prerequisite packages
 library(dplyr)
 library(ggplot2)
 
-# 1. READ IN DATA
-# First, set your working directory to where the regression results are stored and get the filenames
-
-#setwd("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Linear Regression/Regression Results 1_14_2026/regression_results")
 repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
 dir.create(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"), showWarnings = FALSE, recursive = TRUE)
 setwd(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"))
 csv_files <- list.files(".", pattern = "\\.csv$")
 
-#merged_data <- read.csv("<YOUR DROPBOX PATH>/Sternum_BM/Sternum_BM_Flow/AnalysisVaishali/Merged_Flow_Data 2.csv")
 merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data.csv"))
 # Make a new data frame of just the clinical covariates
 clin_df <- merged_data[,1:23]
