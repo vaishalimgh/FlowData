@@ -1,5 +1,8 @@
 # Vaishali Kaushal, 260929
 # Heatmap 
+# Todo:
+#   - Make cell type definition more similar to previous scripts
+#   - replace `data` with `df`
 
 # Rows    = clinical variables (conditions)
 # Columns = cell types
@@ -10,58 +13,53 @@
 library(ggplot2)
 library(reshape2) 
 
-repo_root <- tryCatch(system("git rev-parse --show-toplevel", intern = TRUE, ignore.stderr = TRUE),
-                      error = function(e) character(0))
-if (length(repo_root) == 1 && nzchar(repo_root) && dir.exists(paste0(repo_root, "/AnalysisVaishali"))) {
-  setwd(paste0(repo_root, "/AnalysisVaishali"))
-}
-rm(list = ls()[ls() != "repo_root"])
+# repo_root <- tryCatch(system("git rev-parse --show-toplevel", intern = TRUE, ignore.stderr = TRUE),
+#                       error = function(e) character(0))
+# if (length(repo_root) == 1 && nzchar(repo_root) && dir.exists(paste0(repo_root, "/AnalysisVaishali"))) {
+#   setwd(paste0(repo_root, "/AnalysisVaishali"))
+# }
+# rm(list = ls()[ls() != "repo_root"])
+
+# Set working directory
+repo_root <- system("git rev-parse --show-toplevel", intern = T)
+setwd(paste0(repo_root, "/AnalysisVaishali"))
+
+# Clear environment variables
+rm(list = ls())
 
 # Load data 
-data_path <- if (file.exists("../Merged_Flow_Data.csv")) "../Merged_Flow_Data.csv" else "Merged_Flow_Data.csv"
-data <- read.csv(data_path, check.names = TRUE)  # check.names=TRUE -> spaces become "."
-
-# "Sex assigned at birth" -> "Sex.assigned.at.birth" 
-if ("Sex.assigned.at.birth" %in% colnames(data)) {
-  colnames(data)[colnames(data) == "Sex.assigned.at.birth"] <- "Sex"
-} else {
-  colnames(data)[7] <- "Sex"
-}
-# "Age at enrollment" -> "Age.at.enrollment" 
-if ("Age.at.enrollment" %in% colnames(data)) {
-  colnames(data)[colnames(data) == "Age.at.enrollment"] <- "Age"
-}
+data <- read.csv("../Merged_Flow_Data.csv")
 
 # Long column names into short labels
 all_cells <- c( "CD45",
                 "HSPCs",
-                "Pro_B",
-                "Pre_Pro_B",
-                "B_cells",
-                "Early_NK",
-                "Mature_NK",
-                "Non_classical_monocyte",
                 "Classical_monocyte",
+                "Non_classical_monocyte", 
                 "MDSC_like",
-                "pDCs",
                 "cDCs",
-                "ILC",
-                "CD8neg_NKT",
-                "CD8pos_NKT",
+                "pDCs",
+                "Pre_Pro_B",
+                "Pro_B",
+                "B_cells",
                 "CD4_T",
+                "Tregs",
                 "Naive_CD4",
                 "CM_CD4",
                 "Effector_CD4",
                 "PD1_CD4",
                 "CD4_TPex",
-                "Tregs",
                 "CD8_T",
                 "Naive_CD8",
                 "CM_CD8",
                 "Effector_CD8",
                 "PD1_CD8",
                 "CD8_TPex",
-                "gd_T")
+                "gd_T", 
+                "CD8neg_NKT",
+                "CD8pos_NKT",
+                "ILC",
+                "Early_NK",
+                "Mature_NK")
 
 # Define columns
 cd45_col  <- "CD45"
@@ -198,6 +196,7 @@ p <- ggplot(heatmap_data, aes(x = Cell, y = Condition, fill = LogFC_capped)) +
     na.value = "grey85",
     name     = "Log2FC"
   ) +
+  scale_x_discrete(labels = function(x) gsub("_", " ", x)) +
   xlab("Cell Type") +
   ylab("Clinical Variable") +
   ggtitle("Cell Type Proportion Log2FC Across Clinical Variables") +
@@ -210,7 +209,6 @@ p <- ggplot(heatmap_data, aes(x = Cell, y = Condition, fill = LogFC_capped)) +
     panel.grid       = element_blank(),
     legend.title     = element_text(face = "bold")
   )
-
 # ---- Save outputs 
 out_dir <- "05_Heatmap"
 if (!dir.exists(out_dir)) dir.create(out_dir)
@@ -219,8 +217,3 @@ ggsave(file.path(out_dir, "LogFC_Heatmap.pdf"), p, device = "pdf", width = 14, h
 ggsave(file.path(out_dir, "LogFC_Heatmap.png"), p, device = "png", width = 14, height = 8, dpi = 300)
 write.csv(heatmap_data[, c("Condition", "Cell", "LogFC", "PValue", "AdjPValue")],
           file.path(out_dir, "LogFC_Heatmap_data.csv"), row.names = FALSE)
-
-message("Saved: ", file.path(out_dir, "LogFC_Heatmap.pdf"))
-message("Saved: ", file.path(out_dir, "LogFC_Heatmap.png"))
-message("Saved: ", file.path(out_dir, "LogFC_Heatmap_data.csv"))
-
