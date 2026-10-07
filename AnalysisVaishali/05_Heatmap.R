@@ -1,7 +1,7 @@
 # Vaishali Kaushal, 260929
 # Heatmap 
 # Todo:
-#   - Make cell type definition more similar to previous scripts
+#   - Make cell type definition more similar to previous scripts 
 #   - replace `data` with `df`
 
 # Rows    = clinical variables (conditions)
@@ -13,13 +13,6 @@
 library(ggplot2)
 library(reshape2) 
 
-# repo_root <- tryCatch(system("git rev-parse --show-toplevel", intern = TRUE, ignore.stderr = TRUE),
-#                       error = function(e) character(0))
-# if (length(repo_root) == 1 && nzchar(repo_root) && dir.exists(paste0(repo_root, "/AnalysisVaishali"))) {
-#   setwd(paste0(repo_root, "/AnalysisVaishali"))
-# }
-# rm(list = ls()[ls() != "repo_root"])
-
 # Set working directory
 repo_root <- system("git rev-parse --show-toplevel", intern = T)
 setwd(paste0(repo_root, "/AnalysisVaishali"))
@@ -28,7 +21,7 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Load data 
-data <- read.csv("../Merged_Flow_Data.csv")
+flow_df <- read.csv("../Merged_Flow_Data.csv")
 
 # Long column names into short labels
 all_cells <- c( "CD45",
@@ -66,9 +59,9 @@ cd45_col  <- "CD45"
 cell_cols <- setdiff(all_cells, "CD45")
 
 # Calculate proportions (cell count / CD45 count), 
-prop_data <- data
+prop_data <- flow_df
 for (col in cell_cols) {
-  prop_data[, col] <- as.numeric(data[, col]) / as.numeric(data[, cd45_col])
+  prop_data[, col] <- as.numeric(flow_df[, col]) / as.numeric(flow_df[, cd45_col])
 }
 
 # Add age and BMI (make binary using median as threshold),
