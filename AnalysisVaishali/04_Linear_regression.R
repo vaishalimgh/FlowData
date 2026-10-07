@@ -11,13 +11,13 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
 # Read in the merged CSV file
-df <- read.csv("../Merged_Flow_Data.csv")
+flow_df <- read.csv("../Merged_Flow_Data.csv")
 
 
 # Linear regression ------------------------------------------------------------
 
 # Make a new data frame of just the clinical covariates
-clin_df <- df[,1:23]
+clin_df <- flow_df[,1:23]
 
 # Change the column names by getting rid of extraneous text
 colnames(clin_df) <- gsub("Primary.pre.operative.diagnosis...checkboxes..choice.", "", colnames(clin_df))
@@ -29,14 +29,14 @@ clin_df$Cancer.type <- NULL
 clin_df$Ethnicity <- NULL
 clin_df$Current.smoker <- NULL
 clin_df$Endocarditis <- NULL 
-clin_df$Atherosclerosis <- df$Atherosclerosis
+clin_df$Atherosclerosis <- flow_df$Atherosclerosis
 
 # Identify the columns that need to be binarized to 1's and 0's
 lapply(clin_df, unique)
 
 # Change sex column to binary numbers
-clin_df$Sex.assigned.at.birth[clin_df$Sex.assigned.at.birth == "Male"] <- 0
-clin_df$Sex.assigned.at.birth[clin_df$Sex.assigned.at.birth == "Female"] <- 1
+clin_df$Sex[clin_df$Sex == "Male"] <- 0
+clin_df$Sex[clin_df$Sex == "Female"] <- 1
 
 # Change checks to 1 and unchecks to 0
 clin_df[clin_df == "Unchecked"] <- 0
@@ -71,19 +71,18 @@ clin_df <- as.data.frame(sapply(clin_df, as.numeric))
 # Make a new data frame of the cell types we want
 # Define the cell type columns to model (same panel as the volcano plot script)
 all_cells <- c("CD45",
-               "HSPCs", "Pro_B", "Pre_Pro_B", "B_cells", "Early_NK", "Mature_NK",
-               "Non_classical_monocyte", "Classical_monocyte", "MDSC_like", "pDCs", "cDCs",
-               "ILC", "CD8neg_NKT", "CD8pos_NKT", "CD4_T", "Naive_CD4", "CM_CD4",
-               "Effector_CD4", "PD1_CD4", "CD4_TPex", "Tregs", "CD8_T", "Naive_CD8",
-               "CM_CD8", "Effector_CD8", "PD1_CD8", "CD8_TPex", "gd_T")
+               "HSPCs","Classical_monocyte","Non_classical_monocyte", "MDSC_like","cDCs", "pDCs","Pre_Pro_B","Pro_B", "B_cells",
+               "CD4_T", "Tregs","Naive_CD4","CM_CD4","Effector_CD4", "PD1_CD4","CD4_TPex","CD8_T","Naive_CD8", "CM_CD8","Effector_CD8", "PD1_CD8","CD8_TPex",
+               "gd_T", "CD8neg_NKT","CD8pos_NKT","Early_NK","Mature_NK"
+               )
 
-missing_cols <- setdiff(all_cells, colnames(df))
+missing_cols <- setdiff(all_cells, colnames(flow_df))
 if(length(missing_cols) > 0){
   stop("These expected columns are missing from the CSV: ", paste(missing_cols, collapse = ", "))
 }
 
 cell_cols <- setdiff(all_cells, "CD45") #Excluded CD45  
-prop_data <- df[, cell_cols]
+prop_data <- flow_df[, cell_cols]
 
 # Initial check of cell type effects in multiple regression
 
@@ -98,7 +97,6 @@ for(i in 1:ncol(prop_data)){ # For each column index:
   fit <- lm(cell_type ~ ., data = flow_data) # Run linear regression
   
   results_list[[i]] <- summary(fit) # add it to the list
- 
 }
 
 names(results_list) <- colnames(prop_data) # Add the cell type labels to your results
@@ -106,7 +104,6 @@ names(results_list) <- colnames(prop_data) # Add the cell type labels to your re
 # View results
 print(names(results_list[25])) # Change to any number 1:29
 results_list[[25]] # Change to same number 1:29
-
 View(results_list[[25]]$coefficients)
 
 dir.create("04.1_Regression_Results", showWarnings = FALSE)
@@ -157,8 +154,8 @@ for(i in 1:ncol(clin_df)){ # For each column index,
 }
 
 # change sex column to binary numbers
-clin_df$Sex.assigned.at.birth[clin_df$Sex.assigned.at.birth == "Male"] <- 0
-clin_df$Sex.assigned.at.birth[clin_df$Sex.assigned.at.birth == "Female"] <- 1
+clin_df$Sex[clin_df$Sex == "Male"] <- 0
+clin_df$Sex[clin_df$Sex == "Female"] <- 1
 
 
 # Change checks to 1 and unchecks to 0
@@ -213,17 +210,17 @@ celltypes <- list() #generate an empty list to make saving easier
 # Then loop through each csv file and generate a plot:
 for(csv in csv_files){
   print(csv)
-  data <- read.csv(csv) # Read in the csv file
+  coef_data <- read.csv(csv) # Read in the csv file
   
   celltype <- gsub(".csv", "", csv) # get a character string of the cell type name
   celltypes <- unlist(append(celltypes, celltype)) # Add the character string to your list for saving
   
-  data <- right_join(data, sds) # Merge the standard deviations with the csv (right join removes intercept)
-  data$Effect.Size <- data$Estimate * data$sds # Calculate Effect Size
-  data$p.value <- ifelse(data$Pr...t.. < 0.05, "Significant", "Not Significant") # Make a significance annotation for plotting
+  coef_data <- right_join(coef_data, sds) # Merge the standard deviations with the csv (right join removes intercept)
+  coef_data$Effect.Size <- coef_data$Estimate * coef_data$sds # Calculate Effect Size
+  coef_data$p.value <- ifelse(coef_data$Pr...t.. < 0.05, "Significant", "Not Significant") # Make a significance annotation for plotting
   
   # plot
-  plt <- ggplot(data, aes(x = reorder(X, Effect.Size), y = Effect.Size, fill = p.value)) +
+  plt <- ggplot(coef_data, aes(x = reorder(X, Effect.Size), y = Effect.Size, fill = p.value)) +
     geom_col() +
     coord_flip() +
     labs(y = "Effect Size", x = "Clinical Covariate", title = celltype) +
