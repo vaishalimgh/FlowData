@@ -10,50 +10,18 @@ repo_root <- system("git rev-parse --show-toplevel", intern = T)
 setwd(paste0(repo_root, "/AnalysisVaishali"))
 rm(list = ls())
 
-# Load data.  This file was likely created by merging files within 'Sternum_BM/Sternum_BM_Flow/AnalysisAdrienne/Counts and Fluor Level data/Flow_Cell_Lists' and we will rerun this script using the regenerated Merged_Flow_Data.csv
-data <- read.csv("../Merged_Flow_Data.csv")
-colnames(data)[7] <- "Sex"
-
-# Long column names into short readable labels for the plots
-all_cells <- c( "CD45",
-                "HSPCs",
-                "Pro_B",
-                "Pre_Pro_B",
-                "B_cells", 
-                "Early_NK",
-                "Mature_NK",
-                "Non_classical_monocyte",
-                "Classical_monocyte",
-                "MDSC_like",
-                "pDCs",
-                "cDCs",
-                "ILC",
-                "CD8neg_NKT",
-                "CD8pos_NKT",
-                "CD4_T",
-                "Naive_CD4",
-                "CM_CD4",
-                "Effector_CD4",
-                "PD1_CD4",
-                "CD4_TPex",
-                "Tregs",
-                "CD8_T",
-                "Naive_CD8",
-                "CM_CD8",
-                "Effector_CD8",
-                "PD1_CD8",
-                "CD8_TPex",
-                "gd_T")
-
+# Load flow results & define cell types of interest
+df <- read.csv("../Merged_Flow_Data.csv", check.names = F)
+all_cells <- colnames(df)[c(25,26,29:31,33,36:39,41:59)]
 
 # Define columns
 cd45_col  <- "CD45"
 cell_cols <- setdiff(all_cells, "CD45")
 
 # Calculate proportions
-prop_data <- data
+prop_data <- df
 for(col in cell_cols){
-  prop_data[, col] <- as.numeric(data[, col]) / as.numeric(data[, cd45_col])
+  prop_data[, col] <- as.numeric(df[, col]) / as.numeric(df[, cd45_col])
 }
 # Add age and BMI (make binary using median as threshold)
 prop_data$Age_Group <- ifelse(prop_data$Age >= median(prop_data$Age, na.rm = TRUE), "Yes", "No")
@@ -65,40 +33,23 @@ conditions <- c(
   "Sex",
   "Diabetes",
   "Hypertension",
-  "Coronary.artery.disease",
-  "Valve.disease",
+  "Coronary artery disease",
+  "Valve disease",
   "Stroke",
-  "Autoimmune.disease",
-  "Peripheral.vascular.disease",
+  "Autoimmune disease",
+  "Peripheral vascular disease",
   "Atherosclerosis",
-  "History.of.cancer",
+  "History of cancer",
   "Smoking",       
   "Age_Group",
   "BMI_Group"
 )
 
-condition_titles <- c(
-  "Sex",
-  "Diabetes",
-  "Hypertension",
-  "Coronary Artery Disease",
-  "Valve Disease",
-  "Stroke",
-  "Autoimmune Disease",
-  "Peripheral Vascular Disease",
-  "Atherosclerosis",  
-  "History of Cancer",
-  "Smoking",       
-  "Age (High vs Low)",
-  "BMI (High vs Low)"
-)
-
 # Volcano plot function 
-volcano_plot <- function(data, cell_list, conditions, condition_titles){
+volcano_plot <- function(data, cell_list, conditions){
   
   for(i in 1:length(conditions)){
     condition <- conditions[i]
-    title <- condition_titles[i]
     p_list <- list()
     
     comparison <- as.data.frame(matrix(NA, ncol = 3, nrow = length(cell_list)))
@@ -173,7 +124,7 @@ volcano_plot <- function(data, cell_list, conditions, condition_titles){
       guides(colour = guide_legend(override.aes = list(size = 4))) +
       xlab("Log2 Fold Change") +
       ylab("-log10 p-value") + # Note: we're plotting raw P-values
-      ggtitle(title) +
+      ggtitle(condition) +
       geom_hline(yintercept = 1.301, linetype = "dashed", colour = "grey40") +
       geom_vline(xintercept = c(-0.3, 0.3), linetype = "dashed", colour = "grey40") +
       theme_bw() +
@@ -187,8 +138,8 @@ volcano_plot <- function(data, cell_list, conditions, condition_titles){
         legend.title      = element_blank()
       )
     
-    ggsave(paste0("03_Volcano_Plots/", title, "_volcano.pdf"), p, device = "pdf", width = 12, height = 10)
-    message("Saved: ", title, "_volcano.pdf")
+    ggsave(paste0("03.2_Volcano_Plots/", condition, "_volcano.pdf"), p, device = "pdf", width = 12, height = 10)
+    message("Saved: ", condition, "_volcano.pdf")
   }
 }
 
@@ -196,7 +147,37 @@ volcano_plot <- function(data, cell_list, conditions, condition_titles){
 volcano_plot(
   data             = prop_data,
   cell_list        = cell_cols,
-  conditions       = conditions,
-  condition_titles = condition_titles
+  conditions       = conditions
 )
+
+
+# Saving the numerical results (csv) 
+
+dir.create("03.1_Volcano_Results", showWarnings = FALSE)
+dir.create("03.2_Volcano_Plots",   showWarnings = FALSE)
+
+for(condition in conditions){
+  g1 <- subset(prop_data, prop_data[,condition] %in% c("Yes", "Female", "Checked"))
+  g2 <- subset(prop_data, prop_data[,condition] %in% c("No",  "Male",   "Unchecked"))
+  
+  res <- do.call(rbind, lapply(cell_cols, function(cell){
+    x <- as.numeric(g1[, cell]); y <- as.numeric(g2[, cell])
+    p <- tryCatch(t.test(x, y)$p.value, error = function(e) NA)
+    data.frame(Condition   = condition,
+               Cell        = cell,
+               Mean_Group1 = mean(x, na.rm = TRUE),
+               Mean_Group2 = mean(y, na.rm = TRUE),
+               LogFC       = log2(mean(x, na.rm = TRUE) / mean(y, na.rm = TRUE)),
+               P_value     = p)
+  }))
+  res$neg_log10_P    <- -log10(res$P_value)
+  res$adj_P_BH       <- p.adjust(res$P_value, method = "BH")
+  res$neg_log10_adjP <- -log10(res$adj_P_BH)
+  res$Category <- ifelse(!is.na(res$neg_log10_P) & res$neg_log10_P > 1.301 & res$LogFC >  0.3, "Increased",
+                         ifelse(!is.na(res$neg_log10_P) & res$neg_log10_P > 1.301 & res$LogFC < -0.3, "Decreased",
+                                "Not Significant"))
+  
+  write.csv(res, paste0("03.1_Volcano_Results/", condition, "_volcano_results.csv"), row.names = FALSE)
+  message("Saved: ", condition, "_volcano_results.csv")
+}
 

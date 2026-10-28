@@ -15,41 +15,9 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 # Clear environment variables
 rm(list = ls())
 
-# Load flow results (we still need to find out how to reproduce this)
+# Load flow results & define cell types of interest
 df <- read.csv("../Merged_Flow_Data.csv", check.names = F)
-
-# Define column names ----------------------------------------------------------
-
-all_cells <- c( "CD45",
-                "HSPCs",
-                "Pro_B",
-                "Pre_Pro_B",
-                "B_cells", 
-                "Early_NK",
-                "Mature_NK",
-                "Non_classical_monocyte",
-                "Classical_monocyte",
-                "MDSC_like",
-                "pDCs",
-                "cDCs",
-                "ILC",
-                "CD8neg_NKT",
-                "CD8pos_NKT",
-                "CD4_T",
-                "Naive_CD4",
-                "CM_CD4",
-                "Effector_CD4",
-                "PD1_CD4",
-                "CD4_TPex",
-                "Tregs",
-                "CD8_T",
-                "Naive_CD8",
-                "CM_CD8",
-                "Effector_CD8",
-                "PD1_CD8",
-                "CD8_TPex",
-                "gd_T")
-
+all_cells <- colnames(df)[c(25,26,29:31,33,36:39,41:59)]
 
 
 # Compute cell type proportions -----------------------------------------------
@@ -58,7 +26,7 @@ all_cells <- c( "CD45",
 props <- df %>%
   select(
     `Record ID`,
-    `Age at enrollment`,
+    `Age`,
     BMI,
     all_of(all_cells)
   )
@@ -145,7 +113,7 @@ all_celltypes <- setdiff(all_cells, "CD45")
 age_plots <- lapply(all_celltypes, function(cell) {
   make_corr_plot(
     data = props,
-    x_var = "Age at enrollment",
+    x_var = "Age",
     cell_name = cell
   )
 })

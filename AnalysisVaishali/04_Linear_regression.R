@@ -3,6 +3,8 @@
 
 # Setup ------------------------------------------------------------------------
 
+library(tidyverse)
+
 # Set working directory
 repo_root <- system("git rev-parse --show-toplevel", intern = T)
 setwd(paste0(repo_root, "/AnalysisVaishali"))
@@ -17,19 +19,11 @@ flow_df <- read.csv("../Merged_Flow_Data.csv")
 # Linear regression ------------------------------------------------------------
 
 # Make a new data frame of just the clinical covariates
-clin_df <- flow_df[,1:23]
-
-# Change the column names by getting rid of extraneous text
-colnames(clin_df) <- gsub("Primary.pre.operative.diagnosis...checkboxes..choice.", "", colnames(clin_df))
-
-# Remove columns that will not be used in the regression
-clin_df$Record.ID <- NULL 
-clin_df$Procedure.notes <- NULL
-clin_df$Cancer.type <- NULL
-clin_df$Ethnicity <- NULL
-clin_df$Current.smoker <- NULL
-clin_df$Endocarditis <- NULL 
-clin_df$Atherosclerosis <- flow_df$Atherosclerosis
+clin_df <- flow_df |> select("Coronary.artery.disease", "Valve.disease",
+  "Heart.failure", "Sex", "Age", "Race", "BMI", "Smoking", "Diabetes",
+  "History.of.cancer", "Hypertension", "Peripheral.vascular.disease",
+  "Hyperlipidemia", "Stroke", "Hypothyroidism", "Autoimmune.disease",
+  "History.of.thrombosis.or.pulmonary.embolism", "Atherosclerosis")
 
 # Identify the columns that need to be binarized to 1's and 0's
 lapply(clin_df, unique)
@@ -118,17 +112,7 @@ for(n in 1:length(results_list)){
 
 # Generate plots ---------------------------------------------------------------
 
-
 # Make Effect size box plots from regression results
-
-library(dplyr)
-library(ggplot2)
-
-repo_root <- system("git rev-parse --show-toplevel", intern = TRUE)
-dir.create(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"), showWarnings = FALSE, recursive = TRUE)
-setwd(file.path(repo_root, "AnalysisVaishali/04.1_Regression_Results"))
-csv_files <- list.files(".", pattern = "\\.csv$")
-
 merged_data <- read.csv(file.path(repo_root, "Merged_Flow_Data.csv"))
 # Make a new data frame of just the clinical covariates
 clin_df <- merged_data[,1:23]
@@ -234,7 +218,6 @@ for(csv in csv_files){
 # Save PDFs
 print(paste("Number of cell types processed:", length(celltypes)))
 print("About to clear and rewrite plots folder")
-
 
 dir.create(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots"), showWarnings = FALSE, recursive = TRUE)
 unlink(list.files(file.path(repo_root, "AnalysisVaishali/04.2_Regression_Plots"), full.names = TRUE))
