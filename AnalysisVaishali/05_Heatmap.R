@@ -170,10 +170,13 @@ heatmap_data$Sig <- with(heatmap_data, ifelse(is.na(PValue), "",
                                                      ifelse(PValue < 0.01,  "**",
                                                             ifelse(PValue < 0.05,  "*", "")))))
 
-# Keep axis order consistent with the vectors defined above rather than alphabetical
-heatmap_data$Condition <- factor(heatmap_data$Condition, levels = rev(condition_titles))
-heatmap_data$Cell      <- factor(heatmap_data$Cell, levels = cell_cols)
+# Cluster conditions by similar Log2FC patterns across cell types
+mat <- acast(heatmap_data, Condition ~ Cell, value.var = "LogFC_capped")
+mat[is.na(mat)] <- 0
+cond_order <- hclust(as.dist(1 - cor(t(mat))), method = "average")
 
+heatmap_data$Condition <- factor(heatmap_data$Condition, levels = rev(rownames(mat)[cond_order$order]))
+heatmap_data$Cell      <- factor(heatmap_data$Cell, levels = cell_cols)
 # ---- Plot heatmap 
 max_abs_fc <- max(abs(heatmap_data$LogFC_capped[is.finite(heatmap_data$LogFC_capped)]), na.rm = TRUE)
 
