@@ -1,9 +1,5 @@
 # Vaishali Kaushal, 260929
 # Heatmap 
-# Todo:
-#   - Make cell type definition more similar to previous scripts 
-#   - replace `data` with `df`
-
 # Rows    = clinical variables (conditions)
 # Columns = cell types
 # Fill    = Log2 fold change (comparison1 vs comparison2, same groupings as the volcano script)
@@ -11,7 +7,8 @@
 
 # Load libraries
 library(ggplot2)
-library(reshape2) 
+library(reshape2)
+library(legendry)
 
 # Set working directory
 repo_root <- system("git rev-parse --show-toplevel", intern = T)
@@ -20,39 +17,9 @@ setwd(paste0(repo_root, "/AnalysisVaishali"))
 # Clear environment variables
 rm(list = ls())
 
-# Load data 
-flow_df <- read.csv("../Merged_Flow_Data.csv")
-
-# Long column names into short labels
-all_cells <- c( "CD45",
-                "HSPCs",
-                "Classical_monocyte",
-                "Non_classical_monocyte", 
-                "MDSC_like",
-                "cDCs",
-                "pDCs",
-                "Pre_Pro_B",
-                "Pro_B",
-                "B_cells",
-                "CD4_T",
-                "Tregs",
-                "Naive_CD4",
-                "CM_CD4",
-                "Effector_CD4",
-                "PD1_CD4",
-                "CD4_TPex",
-                "CD8_T",
-                "Naive_CD8",
-                "CM_CD8",
-                "Effector_CD8",
-                "PD1_CD8",
-                "CD8_TPex",
-                "gd_T", 
-                "CD8neg_NKT",
-                "CD8pos_NKT",
-                "ILC",
-                "Early_NK",
-                "Mature_NK")
+# Load data
+flow_df <- read.csv("../Merged_Flow_Data.csv", check.names = F)
+all_cells <- colnames(flow_df)[c(25,26,29:31,33,36:39,41:59)]
 
 # Define columns
 cd45_col  <- "CD45"
@@ -68,37 +35,21 @@ for (col in cell_cols) {
 prop_data$Age_Group <- ifelse(prop_data$Age >= median(prop_data$Age, na.rm = TRUE), "Yes", "No")
 prop_data$BMI_Group <- ifelse(prop_data$BMI >= median(prop_data$BMI, na.rm = TRUE), "Yes", "No")
 
-# Define conditions and their clean titles 
+# Define conditions
 conditions <- c(
   "Sex",
   "Diabetes",
   "Hypertension",
-  "Coronary.artery.disease",
-  "Valve.disease",
+  "Coronary artery disease",
+  "Valve disease",
   "Stroke",
-  "Autoimmune.disease",
-  "Peripheral.vascular.disease",
+  "Autoimmune disease",
+  "Peripheral vascular disease",
   "Atherosclerosis",
-  "History.of.cancer",
+  "History of cancer",
   "Smoking",
   "Age_Group",
   "BMI_Group"
-)
-
-condition_titles <- c(
-  "Sex",
-  "Diabetes",
-  "Hypertension",
-  "Coronary Artery Disease",
-  "Valve Disease",
-  "Stroke",
-  "Autoimmune Disease",
-  "Peripheral Vascular Disease",
-  "Atherosclerosis",
-  "History of Cancer",
-  "Smoking",
-  "Age (High vs Low)",
-  "BMI (High vs Low)"
 )
 
 # ---- Compute Log2FC + p-value for every (condition x cell type) 
@@ -106,16 +57,15 @@ condition_titles <- c(
 #   comparison1 = "Yes"/"Female"/"Checked"   (numerator)
 #   comparison2 = "No"/"Male"/"Unchecked"    (denominator)
 
-compute_logfc_table <- function(data, cell_list, conditions, condition_titles) {
+compute_logfc_table <- function(df, cell_list, conditions) {
   
   results <- list()
   
   for (i in seq_along(conditions)) {
     condition <- conditions[i]
-    title     <- condition_titles[i]
     
-    comparison1 <- subset(data, data[, condition] == "Yes" | data[, condition] == "Female" | data[, condition] == "Checked")
-    comparison2 <- subset(data, data[, condition] == "No"  | data[, condition] == "Male"   | data[, condition] == "Unchecked")
+    comparison1 <- subset(df, df[, condition] == "Yes" | df[, condition] == "Female" | df[, condition] == "Checked")
+    comparison2 <- subset(df, df[, condition] == "No"  | df[, condition] == "Male"   | df[, condition] == "Unchecked")
     
     n_cell <- length(cell_list)
     logFC_vec <- numeric(n_cell)
@@ -138,7 +88,7 @@ compute_logfc_table <- function(data, cell_list, conditions, condition_titles) {
     adj_pval_vec <- p.adjust(pval_vec, method = "BH")
     
     results[[i]] <- data.frame(
-      Condition   = title,
+      Condition   = condition,
       Cell        = cell_list,
       LogFC       = logFC_vec,
       PValue      = pval_vec,
@@ -151,10 +101,9 @@ compute_logfc_table <- function(data, cell_list, conditions, condition_titles) {
 }
 
 heatmap_data <- compute_logfc_table(
-  data             = prop_data,
-  cell_list        = cell_cols,
-  conditions       = conditions,
-  condition_titles = condition_titles
+  df         = prop_data,
+  cell_list  = cell_cols,
+  conditions = conditions
 )
 
 # Cap extreme / infinite Log2FC values (e.g., when a group mean is 0) purely for color-scale
@@ -175,7 +124,6 @@ mat <- acast(heatmap_data, Condition ~ Cell, value.var = "LogFC_capped")
 mat[is.na(mat)] <- 0
 cond_order <- hclust(as.dist(1 - cor(t(mat))), method = "average")
 
-heatmap_data$Condition <- factor(heatmap_data$Condition, levels = rev(rownames(mat)[cond_order$order]))
 heatmap_data$Cell      <- factor(heatmap_data$Cell, levels = cell_cols)
 # ---- Plot heatmap 
 max_abs_fc <- max(abs(heatmap_data$LogFC_capped[is.finite(heatmap_data$LogFC_capped)]), na.rm = TRUE)
@@ -193,6 +141,8 @@ p <- ggplot(heatmap_data, aes(x = Cell, y = Condition, fill = LogFC_capped)) +
     name     = "Log2FC"
   ) +
   scale_x_discrete(labels = function(x) gsub("_", " ", x)) +
+  # Orders rows by cond_order and draws the tree between the panel and the row labels
+  scale_y_dendro(clust = as.hclust(rev(as.dendrogram(cond_order)))) +
   xlab("Cell Type") +
   ylab("Clinical Variable") +
   ggtitle("Cell Type Proportion Log2FC Across Clinical Variables") +
@@ -202,14 +152,14 @@ p <- ggplot(heatmap_data, aes(x = Cell, y = Condition, fill = LogFC_capped)) +
     axis.title       = element_text(size = 14, face = "bold"),
     axis.text.x      = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 9),
     axis.text.y      = element_text(size = 10),
+axis.ticks.y.left = element_line(colour = "black"),
     panel.grid       = element_blank(),
     legend.title     = element_text(face = "bold")
   )
-# ---- Save outputs 
-out_dir <- "05_Heatmap"
-if (!dir.exists(out_dir)) dir.create(out_dir)
 
-ggsave(file.path(out_dir, "LogFC_Heatmap.pdf"), p, device = "pdf", width = 14, height = 8)
-ggsave(file.path(out_dir, "LogFC_Heatmap.png"), p, device = "png", width = 14, height = 8, dpi = 300)
+# ---- Save outputs
+out_dir <- "05_Heatmap"
+ggsave(file.path(out_dir, "LogFC_Heatmap.pdf"), p, device = "pdf", width = 10, height = 5.5)
+ggsave(file.path(out_dir, "LogFC_Heatmap.png"), p, device = "png", width = 10, height = 5.5, dpi = 300)
 write.csv(heatmap_data[, c("Condition", "Cell", "LogFC", "PValue", "AdjPValue")],
           file.path(out_dir, "LogFC_Heatmap_data.csv"), row.names = FALSE)
